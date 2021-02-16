@@ -8,7 +8,9 @@ Please see the INSTRUCTIONS.md file for more information.
 
 ## Your Solution Setup and Run Instructions
 
-Please include instructions on how to setup and run your solution here.
+1. Ensure all dependencies and prerequisites predefined in the instructions are installed.
+2. Install JSON gem - `gem install json`.
+
 
 ## Your Design Decisions
 
