@@ -9,8 +9,10 @@ Please see the INSTRUCTIONS.md file for more information.
 ## Your Solution Setup and Run Instructions
 
 1. Ensure all dependencies and prerequisites predefined in the instructions are installed.
-2. Install JSON gem - `gem install json`.
-
+2. Install JSON Gem - `gem install json`.
+3. Install Pry Gem - `gem install pry`.
+4. Install Nokogiri Gem - `gem install nokogiri`.
+5. Install HTTParty Gem - `gem install httparty`.
 
 ## Your Design Decisions
 
