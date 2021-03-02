@@ -24,7 +24,7 @@ module CurrencyExchange
     end
 
     # Check exchange rate exists and is not 0.
-    unless exchange_rate == 0.0
+    unless exchange_rate == 0
       # Truncate exchange rate to 3 decimal places for testing purposes.
       exchange_rate = exchange_rate.to_f.truncate(3)
 
@@ -62,35 +62,37 @@ module CurrencyExchange
   end
 
   # Return the exchange rate between from_currency and to_currency on date as a float.
-  # Will use internet source if rate cannot be calculated from a JSON file provided.
+  # Will use internet source if argument specifies not to use local file.
   # Raises an exception if unable to calculate requested rate.
   # Raises an exception if there is no rate for the date provided.
-  def self.rate(date, from_currency, to_currency)
-    puts "FreeAgent Foreign Exchange Rate Program."
+  def self.rate(date, from_currency, to_currency, local)
 
     # Check all arguments are not empty.
     unless date.nil? || from_currency.nil? || to_currency.nil?
-      #from_currency_val = get_currency(date, from_currency)
-      #to_currency_val = get_currency(date, to_currency)
-      #rate = to_currency_val / from_currency_val
-      web_rate = get_website_data(date, from_currency, to_currency)
+
+      # Use local file data if local variable equals 'Y'.
+      unless local == "Y"
+        web_rate = get_website_data(date, from_currency, to_currency)
+      else
+        from_currency_val = get_currency(date, from_currency)
+        to_currency_val = get_currency(date, to_currency)
+        rate = (to_currency_val / from_currency_val).truncate(3)
+        return rate
+      end
 
       # Check the exchange_rate is valid
       unless web_rate.nil?
-        #puts "#{from_currency}: #{from_currency_val}."
-        #puts "#{to_currency}: #{to_currency_val}."
-        puts "Exchange Rate: #{web_rate}."
-
         return web_rate
-
       else
-        raise StandardError.new "rate: An exchange_rate could not be found for the given currencies"
+        unless rate.nil?
+          return rate
+        else
+          raise StandardError.new "rate: An exchange_rate could not be found for the given currencies"
+        end
       end
 
     else
       raise StandardError.new "rate: Please make sure a date and 2 currencies to convert between have been provided."
     end
-
   end
-
 end
