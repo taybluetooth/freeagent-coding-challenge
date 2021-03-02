@@ -1,8 +1,6 @@
 module CurrencyExchange
   # Import JSON into module for parsing.
   require 'json'
-  # Import Pry into module for debugging purposes.
-  require 'pry'
   # Import Nokogiri into module for HTML parsing.
   require 'nokogiri'
   # Import Open-Uri into module to make a get request to web page.
@@ -13,23 +11,22 @@ module CurrencyExchange
     doc = Nokogiri::HTML(URI.open("https://www.xe.com/currencytables/?from=#{from_currency}&date=#{date}"))
     # Extract table from parsed HTML.
     table = doc.css("table#historicalRateTbl")
+
     exchange_rate = 0
 
     # Sift through all data entries in table and check against user input.
     data = table.css('tr').map do |row|
       # If the row selected contains the currency to be converted to, assign to exchange rate var.
-      if row.xpath('./td').map(&:text)[0] == to_currency
+      unless row.xpath('./td').map(&:text)[0] != to_currency
         exchange_rate = row.xpath('./td').map(&:text)[2]
       end
     end
 
     # Check exchange rate exists and is not 0.
-    unless exchange_rate == 0
+    unless exchange_rate == 0 || exchange_rate.nil?
       # Truncate exchange rate to 3 decimal places for testing purposes.
       exchange_rate = exchange_rate.to_f.truncate(3)
-
       return exchange_rate
-
     else
       raise StandardError.new "get_website_data: An exchange rate for the given currencies could not be found."
     end
@@ -53,11 +50,16 @@ module CurrencyExchange
     unless date.nil? || currency.nil?
       date = date.to_s
       currency = currency.to_s
-      currency = file_contents[date][currency]
-      return currency
+      currency_value = file_contents[date][currency]
+
+      unless currency_value.nil?
+        return currency_value
+      else
+        raise StandardError.new "get_currency: The given currency #{currency} could not be found on #{date}."
+      end
 
     else
-      raise StandardError.new "get_currency: Please make sure a date and currency have been provided."
+      raise StandardError.new "get_currency: Please make sure a valid date and currency have been provided."
     end
   end
 
