@@ -8,18 +8,31 @@ module CurrencyExchange
   # Import Open-Uri into module to make a get request to web page.
   require 'open-uri'
 
-  # Returns current exchange rate from valuta exchange.
-  def self.get_website_data()
-    doc = Nokogiri::HTML(URI.open("https://www.xe.com/currencytables/?from=USD&date=2021-03-01"))
+  # Returns current exchange rate from XE exchange.
+  def self.get_website_data(date, from_currency, to_currency)
+    doc = Nokogiri::HTML(URI.open("https://www.xe.com/currencytables/?from=#{from_currency}&date=#{date}"))
     # Extract table from parsed HTML.
     table = doc.css("table#historicalRateTbl")
+    exchange_rate = 0
 
-    # Sift through all data entries in table selecting only currency code and exchange rate.
+    # Sift through all data entries in table and check against user input.
     data = table.css('tr').map do |row|
-      row.xpath('./td').map(&:text)[0,3].join(' - ')
+      # If the row selected contains the currency to be converted to, assign to exchange rate var.
+      if row.xpath('./td').map(&:text)[0] == to_currency
+        exchange_rate = row.xpath('./td').map(&:text)[2]
+      end
     end
 
-    return data
+    # Check exchange rate exists and is not 0.
+    unless exchange_rate == 0.0
+      # Truncate exchange rate to 3 decimal places for testing purposes.
+      exchange_rate = exchange_rate.to_f.truncate(3)
+
+      return exchange_rate
+
+    else
+      raise StandardError.new "get_website_data: An exchange rate for the given currencies could not be found."
+    end
   end
 
   # Returns file_contents array containing parsed contents of JSON file.
@@ -37,33 +50,47 @@ module CurrencyExchange
   def self.get_currency(date, currency)
     file_contents = get_file_contents
 
-    date = date.to_s
-    currency = currency.to_s
+    unless date.nil? || currency.nil?
+      date = date.to_s
+      currency = currency.to_s
+      currency = file_contents[date][currency]
+      return currency
 
-    currency = file_contents[date][currency]
-
-    return currency
+    else
+      raise StandardError.new "get_currency: Please make sure a date and currency have been provided."
+    end
   end
 
   # Return the exchange rate between from_currency and to_currency on date as a float.
+  # Will use internet source if rate cannot be calculated from a JSON file provided.
   # Raises an exception if unable to calculate requested rate.
   # Raises an exception if there is no rate for the date provided.
   def self.rate(date, from_currency, to_currency)
     puts "FreeAgent Foreign Exchange Rate Program."
-    puts "Foreign Exchange Rate Between #{from_currency} and #{to_currency}."
-    puts "Data Gathered #{date}."
 
-    from_currency_val = get_currency(date, from_currency)
-    to_currency_val = get_currency(date, to_currency)
-    rate = to_currency_val / from_currency_val
-    webdata = get_current_exchange_rate()
+    # Check all arguments are not empty.
+    unless date.nil? || from_currency.nil? || to_currency.nil?
+      #from_currency_val = get_currency(date, from_currency)
+      #to_currency_val = get_currency(date, to_currency)
+      #rate = to_currency_val / from_currency_val
+      web_rate = get_website_data(date, from_currency, to_currency)
 
-    puts "#{from_currency}: #{from_currency_val}."
-    puts "#{to_currency}: #{to_currency_val}."
-    puts "Exchange Rate: #{rate}."
-    puts "Data: #{webdata}"
+      # Check the exchange_rate is valid
+      unless web_rate.nil?
+        #puts "#{from_currency}: #{from_currency_val}."
+        #puts "#{to_currency}: #{to_currency_val}."
+        puts "Exchange Rate: #{web_rate}."
 
-    return rate
+        return web_rate
+
+      else
+        raise StandardError.new "rate: An exchange_rate could not be found for the given currencies"
+      end
+
+    else
+      raise StandardError.new "rate: Please make sure a date and 2 currencies to convert between have been provided."
+    end
+
   end
 
 end
