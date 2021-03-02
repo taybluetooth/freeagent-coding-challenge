@@ -9,8 +9,8 @@ Please see the INSTRUCTIONS.md file for more information.
 ## Your Solution Setup and Run Instructions
 
 1. Ensure all dependencies and prerequisites predefined in the instructions are installed.
-2. Install JSON gem using the following command:- gem install `json`.
-3. Install Nokogiri gem using the following command:- gem install `nokogiri`.
+2. Install JSON gem using the following command:- `gem install json`.
+3. Install Nokogiri gem using the following command:- `gem install nokogiri`.
 4. Install gems into project using bundle:- `bundle install`.
 5. Run all tests: - `bundle exec ruby test/run_tests.rb`.
 
