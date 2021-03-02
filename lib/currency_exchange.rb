@@ -1,6 +1,26 @@
 module CurrencyExchange
   # Import JSON into module for parsing.
   require 'json'
+  # Import Pry into module for debugging purposes.
+  require 'pry'
+  # Import Nokogiri into module for HTML parsing.
+  require 'nokogiri'
+  # Import Open-Uri into module to make a get request to web page.
+  require 'open-uri'
+
+  # Returns current exchange rate from valuta exchange.
+  def self.get_website_data()
+    doc = Nokogiri::HTML(URI.open("https://www.xe.com/currencytables/?from=USD&date=2021-03-01"))
+    # Extract table from parsed HTML.
+    table = doc.css("table#historicalRateTbl")
+
+    # Sift through all data entries in table selecting only currency code and exchange rate.
+    data = table.css('tr').map do |row|
+      row.xpath('./td').map(&:text)[0,3].join(' - ')
+    end
+
+    return data
+  end
 
   # Returns file_contents array containing parsed contents of JSON file.
   def self.get_file_contents()
@@ -36,10 +56,12 @@ module CurrencyExchange
     from_currency_val = get_currency(date, from_currency)
     to_currency_val = get_currency(date, to_currency)
     rate = to_currency_val / from_currency_val
+    webdata = get_current_exchange_rate()
 
     puts "#{from_currency}: #{from_currency_val}."
     puts "#{to_currency}: #{to_currency_val}."
     puts "Exchange Rate: #{rate}."
+    puts "Data: #{webdata}"
 
     return rate
   end
