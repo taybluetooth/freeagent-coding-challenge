@@ -28,7 +28,7 @@ module CurrencyExchange
       exchange_rate = exchange_rate.to_f.truncate(3)
       return exchange_rate
     else
-      raise StandardError.new "get_website_data: An exchange rate for the given currencies could not be found."
+      raise StandardError.new "get_website_data: An exchange rate between #{from_currency} - #{to_currency} on #{date}"
     end
   end
 
@@ -50,7 +50,12 @@ module CurrencyExchange
     unless date.nil? || currency.nil?
       date = date.to_s
       currency = currency.to_s
-      currency_value = file_contents[date][currency]
+
+      unless file_contents[date].nil?
+        currency_value = file_contents[date][currency]
+      else
+        raise StandardError.new "get_currency: #{date} is not a valid date in this file."
+      end
 
       unless currency_value.nil?
         return currency_value
@@ -89,7 +94,7 @@ module CurrencyExchange
         unless rate.nil?
           return rate
         else
-          raise StandardError.new "rate: An exchange_rate could not be found for the given currencies"
+          raise StandardError.new "rate: An exchange_rate could not be found for #{from_currency} - #{to_currency} on #{date}."
         end
       end
 
