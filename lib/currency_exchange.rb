@@ -12,11 +12,12 @@ module CurrencyExchange
     # Extract table from parsed HTML.
     table = doc.css("table#historicalRateTbl")
 
+    # Initialise empty exchange rate.
     exchange_rate = 0
 
     # Sift through all data entries in table and check against user input.
     data = table.css('tr').map do |row|
-      # If the row selected contains the currency to be converted to, assign to exchange rate var.
+      # If the row selected contains the currency to be converted to, assign to exchange rate variable.
       unless row.xpath('./td').map(&:text)[0] != to_currency
         exchange_rate = row.xpath('./td').map(&:text)[2]
       end
@@ -34,7 +35,7 @@ module CurrencyExchange
 
   # Returns file_contents array containing parsed contents of JSON file.
   def self.get_file_contents()
-    # Read JSON file and parse into a indexed data_hash array.
+    # Read JSON file and parse into a file_contents array.
     file = File.read("data/eurofxref-hist-90d.json")
     file_contents = JSON.parse(file)
 
@@ -45,18 +46,22 @@ module CurrencyExchange
   # Returns an exception if there is no date provided.
   # Returns an exception if there is no currency provided.
   def self.get_currency(date, currency)
+    # Initialise file contents.
     file_contents = get_file_contents
 
+    # Check date and currency are not empty.
     unless date.nil? || currency.nil?
       date = date.to_s
       currency = currency.to_s
 
+      # Check date is valid in the file.
       unless file_contents[date].nil?
         currency_value = file_contents[date][currency]
       else
         raise StandardError.new "get_currency: #{date} is not a valid date in this file."
       end
 
+      # Check a value for the given currency can be found.
       unless currency_value.nil?
         return currency_value
       else
@@ -78,6 +83,7 @@ module CurrencyExchange
     unless date.nil? || from_currency.nil? || to_currency.nil?
 
       # Use local file data if local variable equals 'Y'.
+      # Otherwise use webscraped data.
       unless local == "Y"
         web_rate = get_website_data(date, from_currency, to_currency)
       else
@@ -87,10 +93,11 @@ module CurrencyExchange
         return rate
       end
 
-      # Check the exchange_rate is valid
+      # Check the webscraped exchange_rate is valid
       unless web_rate.nil?
         return web_rate
       else
+        # Check the local file exchange_rate is valid
         unless rate.nil?
           return rate
         else
